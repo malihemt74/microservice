@@ -1,0 +1,22 @@
+version: "3.8"
+services:
+  app:
+    depends_on:
+      - postgres
+    container_name: microservice
+    restart: always
+    command: node dist/main
+    build: .
+    ports:
+      - "${PORT}:3000"
+    volumes:
+      - ./uploads:/usr/app/uploads
+  postgres:
+    ports:
+      - "127.0.0.1:${DATABASE_PORT}:5432"
+    container_name: postgres
+    image: postgres
+    volumes:
+
+volumes:
+  postgres_data:
