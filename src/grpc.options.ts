@@ -5,6 +5,5 @@ export const grpcOptions: ClientOptions = {
   options: {
     package: 'user',
     protoPath: process.cwd() + '/src/user/user.proto',
-    url: 'localhost:5000',
   },
 };
