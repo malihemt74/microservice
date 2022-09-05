@@ -5,7 +5,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from 'src/jwt-auth.guard';
-import { Metadata } from '@grpc/grpc-js';
+import { Metadata, ServerUnaryCall } from '@grpc/grpc-js';
 
 @Controller()
 export class UsersService {
@@ -25,9 +25,9 @@ export class UsersService {
   }
 
   @GrpcStreamMethod()
-  @UseGuards(JwtAuthGuard)
-  async findAll(metaData: Metadata) {
-    console.log(metaData);
+  // @UseGuards(JwtAuthGuard)
+  async findAll(token) {
+    console.log(token);
     const result = await this.userService.findAll();
     return result;
   }
@@ -40,15 +40,15 @@ export class UsersService {
   }
 
   @GrpcMethod()
-  async update(@Payload() updateUserDto: UpdateUserDto) {
+  async update(updateUserDto: UpdateUserDto) {
     const result = await this.userService.update(updateUserDto);
     console.log(result);
     return result;
   }
 
   @GrpcMethod()
-  async remove(@Payload() id: number) {
-    const result = await this.userService.remove(id);
+  async remove(data) {
+    const result = await this.userService.remove(data);
     console.log(result);
     return result;
   }

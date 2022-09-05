@@ -4,15 +4,11 @@ package user;
 
 service UsersService {
   rpc FindOne (UserId) returns (User) {}
-  rpc FindAll (stream UserId, MetaData) returns (stream User) {}
+  rpc FindAll (stream UserId) returns (Users) {}
   rpc Register (Auth) returns (Auth) {}
   rpc Login (Auth) returns (Auth) {}
   rpc Update (User) returns (User) {}
   rpc Remove (UserId) returns (Message) {}
-}
-
-message MetaData {
-  string authorization = 1;
 }
 
 message UserId {
@@ -32,10 +28,15 @@ message User {
   string statusCode = 5;
 }
 
+message Users {
+  repeated User users = 1;
+}
+
 message Auth {
   string email = 1;
   string username = 2;
   string password = 3;
-  string message = 4;
-  string statusCode = 5;
+  string accessToken = 4;
+  string message = 5;
+  string statusCode = 6;
 }

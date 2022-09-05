@@ -5,6 +5,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import { Token } from './entities/token.entity';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 
@@ -12,6 +13,7 @@ import { JwtService } from '@nestjs/jwt';
 export class UserService {
   constructor(
     @InjectRepository(User) private usersRepository: Repository<User>,
+    @InjectRepository(Token) private tokensRepository: Repository<Token>,
     private jwtService: JwtService,
   ) {}
 
@@ -30,13 +32,18 @@ export class UserService {
           sub: user.id,
           email: user.email,
         };
+        const token = await this.jwtService.sign(payload, {
+          secret: process.env.APP_KEY,
+          expiresIn: '604800s',
+        });
+        await this.tokensRepository.save({
+          user_id: user,
+          token: token,
+        });
         user.password = undefined;
         return {
           ...user,
-          access_token: await this.jwtService.sign(payload, {
-            secret: process.env.APP_KEY,
-            expiresIn: '216000s',
-          }),
+          accessToken: token,
         };
       }
       return {
@@ -67,13 +74,18 @@ export class UserService {
             sub: user.id,
             email: user.email,
           };
+          const token = await this.jwtService.sign(payload, {
+            secret: process.env.APP_KEY,
+            expiresIn: '604800s',
+          });
+          await this.tokensRepository.update(
+            { user_id: user },
+            { token: token },
+          );
           user.password = undefined;
           return {
             ...user,
-            access_token: await this.jwtService.sign(payload, {
-              secret: process.env.APP_KEY,
-              expiresIn: '216000s',
-            }),
+            accessToken: token,
           };
         }
         return {
@@ -97,7 +109,7 @@ export class UserService {
   async findAll() {
     try {
       const users = await this.usersRepository.find();
-      return users;
+      return { users };
     } catch (e) {
       console.log(e);
       return {
@@ -157,6 +169,29 @@ export class UserService {
       return {
         message: 'User deleted successfully.',
       };
+    } catch (e) {
+      console.log(e);
+      return {
+        statusCode: 500,
+        message: 'Internal Server Error.',
+      };
+    }
+  }
+
+  async checkToken(user_id, token) {
+    try {
+      const current_time = new Date();
+      const user_token = await this.tokensRepository.findOneBy({
+        user_id: user_id,
+        token: token,
+      });
+      if (
+        !user_token ||
+        current_time.getTime() - user_token.updated_at.getTime() >= 604800
+      ) {
+        return false;
+      }
+      return true;
     } catch (e) {
       console.log(e);
       return {
