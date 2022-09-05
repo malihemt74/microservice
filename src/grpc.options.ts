@@ -4,6 +4,9 @@ export const grpcOptions: ClientOptions = {
   transport: Transport.GRPC,
   options: {
     package: 'user',
-    protoPath: process.cwd() + '/src/user/user.proto',
+    protoPath: process.cwd() + '/src/proto/user.proto',
+    // loader: {
+    //   includeDirs: [process.cwd() + '/src/proto'],
+    // },
   },
 };

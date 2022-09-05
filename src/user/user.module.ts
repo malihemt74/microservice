@@ -5,7 +5,7 @@ import { UsersService } from './user.controller';
 import { User } from './entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { JwtStrategy } from '../jwt.strategy';
+import { JwtStrategy } from 'src/jwt.strategy';
 
 @Module({
   imports: [
@@ -19,6 +19,7 @@ import { JwtStrategy } from '../jwt.strategy';
       signOptions: { expiresIn: '216000s' },
     }),
   ],
+  exports: [TypeOrmModule],
   controllers: [UsersService],
   providers: [UserService, JwtStrategy],
 })

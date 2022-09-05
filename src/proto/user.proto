@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package user;
+
+service UsersService {
+  rpc FindOne (UserId) returns (User) {}
+  rpc FindAll (stream UserId, MetaData) returns (stream User) {}
+  rpc Register (Auth) returns (Auth) {}
+  rpc Login (Auth) returns (Auth) {}
+  rpc Update (User) returns (User) {}
+  rpc Remove (UserId) returns (Message) {}
+}
+
+message MetaData {
+  string authorization = 1;
+}
+
+message UserId {
+  int32 id = 1;
+}
+
+message Message {
+  string message = 1;
+  string statusCode = 2;
+}
+
+message User {
+  int32 id = 1;
+  string username = 2;
+  string email = 3;
+  string message = 4;
+  string statusCode = 5;
+}
+
+message Auth {
+  string email = 1;
+  string username = 2;
+  string password = 3;
+  string message = 4;
+  string statusCode = 5;
+}

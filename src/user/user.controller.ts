@@ -1,38 +1,55 @@
 import { Controller, UseGuards } from '@nestjs/common';
-import { GrpcMethod, Payload } from '@nestjs/microservices';
+import { GrpcMethod, GrpcStreamMethod, Payload } from '@nestjs/microservices';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { JwtAuthGuard } from 'src/jwt-auth.gaurd';
+import { JwtAuthGuard } from 'src/jwt-auth.guard';
+import { Metadata } from '@grpc/grpc-js';
 
 @Controller()
 export class UsersService {
   constructor(private readonly userService: UserService) {}
 
   @GrpcMethod()
-  create(@Payload() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+  async register(registerDto: RegisterDto) {
+    const result = await this.userService.register(registerDto);
+    return result;
   }
 
   @GrpcMethod()
+  async login(loginDto: LoginDto) {
+    const result = await this.userService.login(loginDto);
+    console.log(result);
+    return result;
+  }
+
+  @GrpcStreamMethod()
   @UseGuards(JwtAuthGuard)
-  findAll() {
-    return this.userService.findAll();
+  async findAll(metaData: Metadata) {
+    console.log(metaData);
+    const result = await this.userService.findAll();
+    return result;
   }
 
   @GrpcMethod()
-  @UseGuards(JwtAuthGuard)
-  findOne(id) {
-    return this.userService.findOne(id);
+  async findOne(data) {
+    const result = await this.userService.findOne(data);
+    console.log(result);
+    return result;
   }
 
   @GrpcMethod()
-  update(@Payload() updateUserDto: UpdateUserDto) {
-    return this.userService.update(updateUserDto);
+  async update(@Payload() updateUserDto: UpdateUserDto) {
+    const result = await this.userService.update(updateUserDto);
+    console.log(result);
+    return result;
   }
 
   @GrpcMethod()
-  remove(@Payload() id: number) {
-    return this.userService.remove(id);
+  async remove(@Payload() id: number) {
+    const result = await this.userService.remove(id);
+    console.log(result);
+    return result;
   }
 }

@@ -5,6 +5,7 @@ import { UserModule } from './user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { JwtStrategy } from './jwt.strategy';
+import { DataSource } from 'typeorm';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { JwtStrategy } from './jwt.strategy';
         database: process.env.DB_NAME,
         entities: [],
         synchronize: true,
+        autoLoadEntities: true,
       }),
     }),
     UserModule,
@@ -26,4 +28,6 @@ import { JwtStrategy } from './jwt.strategy';
   controllers: [AppController],
   providers: [AppService, JwtStrategy],
 })
-export class AppModule {}
+export class AppModule {
+  constructor(private dataSource: DataSource) {}
+}

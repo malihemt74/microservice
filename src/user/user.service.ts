@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CreateUserDto } from './dto/create-user.dto';
-import { LoginUserDto } from './dto/login-user.dto';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
@@ -15,15 +15,29 @@ export class UserService {
     private jwtService: JwtService,
   ) {}
 
-  async create(createUserDto: CreateUserDto) {
+  async register(registerDto: RegisterDto) {
     try {
       let user = await this.usersRepository.findOneBy({
-        email: createUserDto['email'],
+        email: registerDto['email'],
       });
       if (!user) {
-        user = await this.usersRepository.save(createUserDto);
+        registerDto['password'] = await bcrypt.hash(
+          registerDto['password'],
+          10,
+        );
+        user = await this.usersRepository.save(registerDto);
+        const payload = {
+          sub: user.id,
+          email: user.email,
+        };
         user.password = undefined;
-        return user;
+        return {
+          ...user,
+          access_token: await this.jwtService.sign(payload, {
+            secret: process.env.APP_KEY,
+            expiresIn: '216000s',
+          }),
+        };
       }
       return {
         statusCode: 406,
@@ -38,14 +52,14 @@ export class UserService {
     }
   }
 
-  async login(loginUserDto: LoginUserDto) {
+  async login(loginDto: LoginDto) {
     try {
       const user = await this.usersRepository.findOneBy({
-        email: loginUserDto['email'],
+        email: loginDto['email'],
       });
       if (user) {
         const compare = await bcrypt.compare(
-          loginUserDto['password'],
+          loginDto['password'],
           user.password,
         );
         if (compare) {
@@ -53,8 +67,9 @@ export class UserService {
             sub: user.id,
             email: user.email,
           };
+          user.password = undefined;
           return {
-            user,
+            ...user,
             access_token: await this.jwtService.sign(payload, {
               secret: process.env.APP_KEY,
               expiresIn: '216000s',
@@ -94,7 +109,7 @@ export class UserService {
 
   async findOne(id) {
     try {
-      const user = await this.usersRepository.findOneBy({ id: id });
+      const user = await this.usersRepository.findOneBy(id);
       return user;
     } catch (e) {
       console.log(e);
@@ -110,17 +125,23 @@ export class UserService {
       const user = await this.usersRepository.findOneBy({
         id: updateUserDto.id,
       });
-      if (updateUserDto['username']) {
-        user['username'] = updateUserDto['username'];
+      if (user) {
+        if (updateUserDto['username']) {
+          user['username'] = updateUserDto['username'];
+        }
+        if (updateUserDto['email']) {
+          user['email'] = updateUserDto['email'];
+        }
+        if (updateUserDto['password']) {
+          user['password'] = await bcrypt.hash(updateUserDto['password'], 10);
+        }
+        await this.usersRepository.save(user);
+        return user;
       }
-      if (updateUserDto['email']) {
-        user['email'] = updateUserDto['email'];
-      }
-      if (updateUserDto['password']) {
-        user['password'] = bcrypt.hash(updateUserDto['password'], 10);
-      }
-      await this.usersRepository.save(user);
-      return user;
+      return {
+        statusCode: 404,
+        message: 'User not found.',
+      };
     } catch (e) {
       console.log(e);
       return {
@@ -132,7 +153,6 @@ export class UserService {
 
   async remove(id) {
     try {
-      // const user = await this.usersRepository.findOneBy({ id: id });
       await this.usersRepository.delete(id);
       return {
         message: 'User deleted successfully.',
