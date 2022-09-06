@@ -8,7 +8,9 @@ async function bootstrap() {
   //   AppModule,
   //   grpcOptions,
   // );
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: ['log', 'error', 'warn'],
+  });
   app.connectMicroservice<MicroserviceOptions>(grpcOptions);
   await app.startAllMicroservices();
 }

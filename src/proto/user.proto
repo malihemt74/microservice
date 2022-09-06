@@ -9,6 +9,17 @@ service UsersService {
   rpc Login (Auth) returns (Auth) {}
   rpc Update (User) returns (User) {}
   rpc Remove (UserId) returns (Message) {}
+  rpc CheckUserToken (UserToken) returns (CheckResponse) {}
+}
+
+message UserToken {
+  string token = 1;
+}
+
+message CheckResponse {
+  int32 valid = 1;
+  string message = 2;
+  string statusCode = 3;
 }
 
 message UserId {

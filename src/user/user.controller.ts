@@ -25,9 +25,7 @@ export class UsersService {
   }
 
   @GrpcStreamMethod()
-  // @UseGuards(JwtAuthGuard)
-  async findAll(token) {
-    console.log(token);
+  async findAll() {
     const result = await this.userService.findAll();
     return result;
   }
@@ -49,6 +47,13 @@ export class UsersService {
   @GrpcMethod()
   async remove(data) {
     const result = await this.userService.remove(data);
+    console.log(result);
+    return result;
+  }
+
+  @GrpcMethod()
+  async checkUserToken(data) {
+    const result = await this.userService.checkUserToken(data);
     console.log(result);
     return result;
   }

@@ -178,20 +178,23 @@ export class UserService {
     }
   }
 
-  async checkToken(user_id, token) {
+  async checkUserToken(token) {
     try {
+      console.log('Token: ', token);
       const current_time = new Date();
       const user_token = await this.tokensRepository.findOneBy({
-        user_id: user_id,
         token: token,
       });
-      if (
-        !user_token ||
-        current_time.getTime() - user_token.updated_at.getTime() >= 604800
-      ) {
-        return false;
+      if (user_token) {
+        const user_id = await this.jwtService.decode(token).sub;
+        if (
+          user_id == user_token.user_id.id &&
+          current_time.getTime() - user_token.updated_at.getTime() <= 604800
+        ) {
+          return { valid: false };
+        }
       }
-      return true;
+      return { valid: true };
     } catch (e) {
       console.log(e);
       return {
